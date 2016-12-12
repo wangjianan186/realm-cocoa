@@ -19,11 +19,16 @@
 #import "RLMObject_Private.hpp"
 
 #import "RLMAccessor.h"
+#import "RLMCollection_Private.hpp"
 #import "RLMObjectSchema_Private.hpp"
 #import "RLMObjectStore.h"
+#import "RLMProperty.h"
 #import "RLMQueryUtil.hpp"
 #import "RLMRealm_Private.hpp"
 #import "RLMSchema_Private.h"
+
+#import "collection_notifications.hpp"
+#import "object.hpp"
 
 // We declare things in RLMObject which are actually implemented in RLMObjectBase
 // for documentation's sake, which leads to -Wunimplemented-method warnings.
@@ -148,6 +153,63 @@
     return [object isKindOfClass:RLMObject.class] && RLMObjectBaseAreEqual(self, object);
 }
 
+- (RLMNotificationToken *)addNotificationBlock:(void (^)(RLMObjectChange *change))block {
+    if (!_realm) {
+        @throw RLMException(@"invalid");
+    }
+    [_realm verifyNotificationsAreSupported];
+
+    struct {
+        void (^block)(RLMObjectChange *);
+        RLMObject *object;
+        NSMutableArray *oldValues;
+
+        void before(realm::CollectionChangeSet const& changes) {
+            if (changes.columns.empty())
+                return;
+            oldValues = [NSMutableArray new];
+            size_t i = 0;
+            for (auto& change : changes.columns) {
+                if (!change.empty()) {
+                    // FIXME: handle schema changes
+                    auto prop = _info->propertyForTableColumn(i);
+                    if (prop.type != RLMPropertyTypeArray) {
+                        [oldValues addObject:[object valueForKey:prop.name]];
+                    }
+                }
+                ++i;
+            }
+        }
+
+        void after(realm::CollectionChangeSet const& c) {
+            auto changes = [RLMObjectChange new];
+            if (!c.deletions.empty()) {
+                changes.deleted = true;
+                block(changes);
+                return;
+            }
+
+
+        }
+
+        void error(std::exception_ptr err) {
+            try {
+                rethrow_exception(err);
+            }
+            catch (...) {
+                NSError *error = nil;
+                RLMRealmTranslateException(&error);
+                auto changes = [RLMObjectChange new];
+                changes.error = error;
+                block(changes);
+            }
+        }
+    } callback{block, self};
+
+    realm::Object obj(_realm->_realm, *_info->objectSchema, _row);
+    return [[RLMCancellationToken alloc] initWithToken:obj.add_notification_block(callback) realm:_realm];
+}
+
 + (NSString *)className {
     return [super className];
 }
@@ -220,4 +282,9 @@
     return object;
 }
 
+@end
+
+@implementation RLMObjectChange
+@end
+@implementation RLMPropertyChange
 @end

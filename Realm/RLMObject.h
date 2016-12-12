@@ -22,10 +22,13 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
+@class RLMNotificationToken;
+@class RLMObjectChange;
+@class RLMObjectSchema;
+@class RLMPropertyChange;
 @class RLMPropertyDescriptor;
 @class RLMRealm;
 @class RLMResults;
-@class RLMObjectSchema;
 
 /**
  `RLMObject` is a base class for model objects representing data stored in Realms.
@@ -402,6 +405,10 @@ NS_ASSUME_NONNULL_BEGIN
  */
 + (nullable instancetype)objectInRealm:(RLMRealm *)realm forPrimaryKey:(nullable id)primaryKey;
 
+#pragma mark - Notifications
+
+- (RLMNotificationToken *)addNotificationBlock:(void (^)(RLMObjectChange *change))block;
+
 #pragma mark - Other Instance Methods
 
 /**
@@ -425,6 +432,18 @@ NS_ASSUME_NONNULL_BEGIN
 /// :nodoc:
 - (void)setObject:(nullable id)obj forKeyedSubscript:(NSString *)key;
 
+@end
+
+@interface RLMObjectChange : NSObject
+@property (nonatomic, strong, nullable) NSError *error;
+@property (nonatomic, strong, nullable) NSArray<RLMPropertyChange *> *changes;
+@property (nonatomic) bool deleted;
+@end
+
+@interface RLMPropertyChange : NSObject
+@property (nonatomic, strong) NSString *name;
+@property (nonatomic, strong, nullable) id previousValue;
+@property (nonatomic, strong, nullable) id value;
 @end
 
 #pragma mark - RLMArray Property Declaration

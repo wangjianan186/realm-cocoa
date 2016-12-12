@@ -968,6 +968,7 @@ public:
     AssertIndexChange(NSKeyValueChangeRemoval, indexes);
 
     if (![obj.array isKindOfClass:[NSArray class]]) {
+        return;
         // We deliberately diverge from NSMutableArray for `removeAllObjects` and
         // `addObjectsFromArray:`, because generating a separate notification for
         // each object added or removed is needlessly pessimal.
