@@ -11,7 +11,7 @@ x.x.x Release notes (yyyy-MM-dd)
 
 ### Enhancements
 
-* None.
+* Introduce APIs for safely handing objects between threads.
 
 ### Bugfixes
 
@@ -252,7 +252,6 @@ Prebuilt frameworks are now built with Xcode 7.3.1 and Xcode 8.0.
 * Improve sort performance, especially on non-nullable columns.
 * Allow partial initialization of object by `initWithValue:`, deferring
   required property checks until object is added to Realm.
-* Introduce API for safely handing objects between threads.
 
 ### Bugfixes
 
