@@ -26,12 +26,12 @@ NS_ASSUME_NONNULL_BEGIN
 // Must also conform to `RLMThreadConfined_Private`
 
 /**
- The Realm which manages the instance. Returns `nil` for unmanaged instances.
+ The Realm which manages the thread confined instance. Returns `nil` for unmanaged instances.
  */
 @property (nonatomic, readonly, nullable) RLMRealm *realm;
 
 /**
- Indicates if the object can no longer be accessed.
+ Indicates if the instance can no longer be accessed.
  */
 @property (nonatomic, readonly, getter = isInvalidated) BOOL invalidated;
 
