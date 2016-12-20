@@ -1,0 +1,1 @@
+- [ ] add tests confirming the initial object being referenced is still accessible after creating the handover package
