@@ -22,30 +22,73 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol RLMThreadConfined <NSObject>
-// Must also conform to `RLMThreadConfined_Private`
-
 /**
- The Realm which manages the thread confined instance. Returns `nil` for unmanaged instances.
+ An instance which is bound to a thread-specific `RLMRealm` instance, and so cannot be passed
+ between threads without being explicitly exported and imported.
+
+ Instances conforming to this protocol can be converted to a thread-safe reference for transport
+ between threads by passing to the `+[RLMThreadSafeReference referenceWithThreadConfined:]`
+ constructor.
+
+ Note that only types defined by Realm can meaningfully conform to this protocol, and defining new
+ classes which attempt to conform to it will not make them work with `RLMThreadSafeReference`.
  */
+@protocol RLMThreadConfined <NSObject>
+// Conformance to the `RLMThreadConfined_Private` protocol will be enforced at runtime.
+
+/// The Realm which manages the object, or `nil` if the object is unmanaged.
 @property (nonatomic, readonly, nullable) RLMRealm *realm;
 
-/**
- Indicates if the instance can no longer be accessed.
- */
+/// Indicates if the object can no longer be accessed because it is now invalid.
 @property (nonatomic, readonly, getter = isInvalidated) BOOL invalidated;
 
 @end
 
+/**
+ An object intended to be passed between threads containing a thread-safe reference to its
+ thread-confined object.
+
+ To resolve a thread-safe reference on a target Realm on a different thread, pass to
+ `-[RLMRealm resolveThreadSafeReference:]`.
+
+ @warning Every `RLMThreadSafeReference` object created must be resolved exactly once.
+          An exception will be thrown if a referenced is resolved more than once.
+          The source Realm backing the referenced object will not advance until all its existing
+          thread-safe references have been resolved. This means autorefresh and explicitly calling
+          `-[RLMRealm refresh]` will fail until all references have been resolved or deallocated.
+
+ @see `-[RLMRealm resolveThreadSafeReference:]`
+ */
 @interface RLMThreadSafeReference<__covariant Confined : id<RLMThreadConfined>> : NSObject
 
-// TODO: Document
+/**
+ Create a thread-safe reference to the thread-confined object.
+
+ @param threadConfined The thread-confined object to create a thread-safe reference to.
+ */
 + (instancetype)referenceWithThreadConfined:(Confined)threadConfined;
 
 /**
- Indicates if the reference can no longer be resolved.
+ Indicates if the reference can no longer be resolved because the referenced object has been
+ deleted.
  */
 @property (nonatomic, readonly, getter = isInvalidated) BOOL invalidated;
+
+#pragma mark - Unavailable Methods
+
+/**
+ `-[RLMThreadSafeReference init]` is not available because `RLMThreadSafeReference` cannot be
+ created directly. `RLMThreadSafeReference` instances must be obtained by calling
+ `-[RLMRealm resolveThreadSafeReference:]`.
+ */
+- (instancetype)init __attribute__((unavailable("RLMThreadSafeReference cannot be created directly")));
+
+/**
+ `-[RLMThreadSafeReference new]` is not available because `RLMThreadSafeReference` cannot be
+ created directly. `RLMThreadSafeReference` instances must be obtained by calling
+ `-[RLMRealm resolveThreadSafeReference:]`.
+ */
++ (instancetype)new __attribute__((unavailable("RLMThreadSafeReference cannot be created directly")));
 
 @end
 
