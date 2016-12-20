@@ -31,7 +31,7 @@ import Realm
         private let objectiveCReference: RLMThreadSafeReference<RLMThreadConfined>
 
         public init(to threadConfined: Confined) {
-            // TODO: It might be necessary to check `isInvalidated` and `Realm` here. I'm not certain that bridgeing succeeds
+            // TODO: It might be necessary to check `isInvalidated` and `Realm` here. I'm not certain that bridging succeeds
             //       when these are false/nil.
 
             self.swiftMetadata = (threadConfined as! AssistedObjectiveCBridgeable).bridged.metadata
@@ -52,5 +52,36 @@ import Realm
         }
     }
 #else
-    // TODO
+    public protocol ThreadConfined {
+        // Must also conform to `AssistedObjectiveCBridgeable`
+        var realm: Realm? { get }
+        var invalidated: Bool { get }
+    }
+
+    public class ThreadSafeReference<Confined: ThreadConfined> {
+        private let swiftMetadata: Any?
+        private let type: ThreadConfined.Type
+        private let objectiveCReference: RLMThreadSafeReference
+
+        public init(to threadConfined: Confined) {
+            // TODO: It might be necessary to check `invalidated` and `Realm` here. I'm not certain that bridging succeeds
+            //       when these are false/nil.
+
+            let bridged = (threadConfined as! AssistedObjectiveCBridgeable).bridged
+            self.swiftMetadata = bridged.metadata
+            self.type = threadConfined.dynamicType
+            self.objectiveCReference = RLMThreadSafeReference(threadConfined: bridged.objectiveCValue as! RLMThreadConfined)
+        }
+
+        private func resolve(in realm: Realm) -> Confined? {
+            guard let objectiveCValue = realm.rlmRealm.__resolveThreadSafeReference(objectiveCReference) else { return nil }
+            return ((Confined.self as! AssistedObjectiveCBridgeable.Type).bridging(from: objectiveCValue, with: swiftMetadata) as! Confined)
+        }
+    }
+
+    extension Realm {
+        public func resolve<Confined: ThreadConfined>(reference: ThreadSafeReference<Confined>) -> Confined? {
+            return reference.resolve(in: self)
+        }
+    }
 #endif
