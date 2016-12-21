@@ -85,7 +85,7 @@ public class ThreadSafeReference<Confined: ThreadConfined> {
         self.objectiveCReference = RLMThreadSafeReference(threadConfined: bridged.objectiveCValue as! RLMThreadConfined)
     }
 
-    fileprivate func resolve(in realm: Realm) -> Confined? {
+    internal func resolve(in realm: Realm) -> Confined? {
 #if swift(>=3.0)
         guard let objectiveCValue = realm.rlmRealm.__resolve(objectiveCReference) else { return nil }
 #else
