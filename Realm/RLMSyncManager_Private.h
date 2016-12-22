@@ -20,11 +20,12 @@
 
 #import "RLMSyncUtil_Private.h"
 
-typedef NS_ENUM(NSUInteger, RLMSyncSessionErrorKind) {
-    RLMSyncSessionErrorKindDebug,
-    RLMSyncSessionErrorKindSessionFatal,
-    RLMSyncSessionErrorKindAccessDenied,
-    RLMSyncSessionErrorKindUserFatal,
+typedef NS_ENUM(NSUInteger, RLMSyncSystemErrorKind) {
+    RLMSyncSystemErrorKindDebug,
+    RLMSyncSystemErrorKindClient,
+    RLMSyncSystemErrorKindSession,
+    RLMSyncSystemErrorKindUser,
+    RLMSyncSystemErrorKindAccessDenied,
 };
 
 @class RLMSyncUser, RLMSyncConfiguration;
@@ -43,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)_fireErrorWithCode:(int)errorCode
                    message:(NSString *)message
                    session:(RLMSyncSession *)session
-                errorClass:(RLMSyncSessionErrorKind)errorClass;
+                errorClass:(RLMSyncSystemErrorKind)errorClass;
 
 - (NSArray<RLMSyncUser *> *)_allUsers;
 

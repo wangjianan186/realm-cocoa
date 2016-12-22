@@ -59,6 +59,9 @@ typedef RLM_ERROR_ENUM(NSInteger, RLMSyncError, RLMSyncErrorDomain) {
 
     /// An error that indicates an internal error with the underlying synchronization engine. Only for information.
     RLMSyncErrorClientInternalError     = 6,
+
+    /// An error that indicates a global error with the underlying synchronization engine.
+    RLMSyncErrorClientGlobalError       = 7,
 };
 
 NS_ASSUME_NONNULL_END
