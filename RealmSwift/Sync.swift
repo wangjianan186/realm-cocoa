@@ -304,6 +304,11 @@ public final class SyncPermissionChange: Object {
     }
 
     /// :nodoc:
+    override public class func primaryKey() -> String? {
+        return "id"
+    }
+
+    /// :nodoc:
     override public class func shouldIncludeInDefaultSchema() -> Bool {
         return false
     }
@@ -527,6 +532,11 @@ public final class SyncPermissionChange: Object {
         self.mayRead.value = mayRead
         self.mayWrite.value = mayWrite
         self.mayManage.value = mayManage
+    }
+
+    /// :nodoc:
+    override public class func primaryKey() -> String? {
+        return "id"
     }
 
     /// :nodoc:
